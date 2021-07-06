@@ -6,5 +6,12 @@
   "SIGNUP": "SIGN UP",
   "FORGOT_PW": "Forgot password?",
   "NAVIGATE": "Navigate to %{name}",
-  "CHANGE_THEME": "Change theme"
+  "CHANGE_THEME": "Change theme",
+  "IMAGE_PROCESSING": "Image processing",
+  "MAIN_TAB_TITLE": "Image Processing",
+  "FLIP": "Flip",
+  "SEARCH": "Search",
+  "CAMERA": "Camera",
+  "IMAGE": "Image",
+  "RESULT": "Result"
 }
