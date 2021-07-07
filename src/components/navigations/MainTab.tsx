@@ -7,15 +7,15 @@ import {
 } from '@react-navigation/bottom-tabs';
 import {RootStackNavigationProps, RootStackParamList} from './RootStack';
 import Result from '../pages/Result';
-import Image from '../pages/Image';
+import Gallery from '../pages/Gallery';
 import MobileCam from '../pages/MobileCam';
 import CustomTabBar from '../uis/CustomTabBar';
 import {getString} from '../../../STRINGS';
 
 export type MainTabParamList = {
   mobileCam: undefined;
-  image: undefined;
-  result: {
+  Gallery: undefined;
+  Result: {
     imageUri?: string;
   };
 };
@@ -49,12 +49,12 @@ const MainTab: FC<Props> = () => {
         options={{title: getString('CAMERA')}}
       />
       <Tab.Screen
-        name="image"
-        component={Image}
+        name="Gallery"
+        component={Gallery}
         options={{title: getString('IMAGE')}}
       />
       <Tab.Screen
-        name="result"
+        name="Result"
         component={Result}
         options={{title: getString('RESULT')}}
       />
