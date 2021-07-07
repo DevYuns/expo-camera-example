@@ -2,7 +2,7 @@ import styled from '@emotion/native';
 import {RouteProp} from '@react-navigation/core';
 import {Camera} from 'expo-camera';
 import React, {FC, useEffect, useRef, useState} from 'react';
-import {View, Text, TouchableOpacity} from 'react-native';
+import {View, Text} from 'react-native';
 import {MainTabNavigationProps, MainTabParamList} from '../navigations/MainTab';
 import {useIsFocused} from '@react-navigation/native';
 import {getString} from '../../../STRINGS';
@@ -31,6 +31,24 @@ const ImagePreview = styled.Image`
   margin: 60px 30px;
 `;
 
+const ShootingButtonWrapper = styled.View`
+  position: absolute;
+  bottom: 0;
+  padding: 20px;
+  width: 100%;
+
+  flex-direction: row;
+  justify-content: center;
+`;
+
+const ShootingButton = styled.TouchableOpacity`
+  width: 70px;
+  height: 70px;
+  bottom: 0;
+  border-radius: 50px;
+  background-color: #fff;
+`;
+
 const CancelButton = styled.TouchableOpacity`
   position: absolute;
   top: 45px;
@@ -49,6 +67,15 @@ const CancelButton = styled.TouchableOpacity`
 const Typography = styled.Text`
   font-size: 20px;
   color: ${({theme}) => theme.text};
+`;
+
+const Styledbutton = styled.TouchableOpacity`
+  flex: 1;
+  align-self: stretch;
+  background-color: ${({theme}) => theme.paper};
+
+  justify-content: center;
+  align-items: center;
 `;
 
 type CapturedImage = {
@@ -115,7 +142,7 @@ const MobileCam: FC<Props> = ({navigation}) => {
   const imageProccessing = (): void => {
     if (capturedImage === null) return;
 
-    navigation.navigate('result', {
+    navigation.navigate('Result', {
       imageUri: capturedImage.uri,
     });
   };
@@ -136,34 +163,9 @@ const MobileCam: FC<Props> = ({navigation}) => {
           autoFocus={true}
           style={{flex: 1, alignSelf: 'stretch'}}
           onCameraReady={() => setIsCameraReday(true)}>
-          <View
-            style={{
-              position: 'absolute',
-              bottom: 0,
-              flexDirection: 'row',
-              flex: 1,
-              width: '100%',
-              padding: 20,
-              justifyContent: 'space-between',
-            }}>
-            <View
-              style={{
-                alignSelf: 'center',
-                flex: 1,
-                alignItems: 'center',
-              }}>
-              <TouchableOpacity
-                onPress={takePickture}
-                style={{
-                  width: 70,
-                  height: 70,
-                  bottom: 0,
-                  borderRadius: 50,
-                  backgroundColor: '#fff',
-                }}
-              />
-            </View>
-          </View>
+          <ShootingButtonWrapper>
+            <ShootingButton onPress={takePickture} />
+          </ShootingButtonWrapper>
         </Camera>
       )}
       <View
@@ -173,13 +175,7 @@ const MobileCam: FC<Props> = ({navigation}) => {
           borderTopWidth: 1,
           flexDirection: 'row',
         }}>
-        <TouchableOpacity
-          style={{
-            flex: 1,
-            justifyContent: 'center',
-            alignItems: 'center',
-            borderRightWidth: 1,
-          }}
+        <Styledbutton
           onPress={() => {
             setType(
               type === Camera.Constants.Type.back
@@ -188,17 +184,10 @@ const MobileCam: FC<Props> = ({navigation}) => {
             );
           }}>
           <Typography>{getString('FLIP')}</Typography>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={{
-            flex: 1,
-            justifyContent: 'center',
-            alignItems: 'center',
-            borderLeftWidth: 1,
-          }}
-          onPress={imageProccessing}>
+        </Styledbutton>
+        <Styledbutton onPress={imageProccessing}>
           <Typography> {getString('SEARCH')}</Typography>
-        </TouchableOpacity>
+        </Styledbutton>
       </View>
     </Container>
   );

@@ -9,7 +9,12 @@
   "CHANGE_THEME": "테마 변경",
   "IMAGE_PROCESSING": "이미지 처리",
   "MAIN_TAB_TITLE": "이미지 처리",
+  "FLIP": "전환",
+  "SEARCH": "검색",
   "CAMERA": "카메라",
   "IMAGE": "이미지",
-  "RESULT": "결과"
+  "RESULT": "결과",
+  "PICK_AN_IMAGE": "이미지 선택",
+  "SELECT_IMAGE_DESCRIPTION": "갤러리에서 이미지를 선택해주세요.",
+  "RESULT_DESCRIPTION": "이미지를 선택해주세요."
 }
