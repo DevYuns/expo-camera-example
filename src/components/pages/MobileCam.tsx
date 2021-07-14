@@ -2,10 +2,13 @@ import styled from '@emotion/native';
 import {RouteProp} from '@react-navigation/core';
 import {Camera} from 'expo-camera';
 import React, {FC, useEffect, useRef, useState} from 'react';
-import {View, Text} from 'react-native';
+import {View, Text, LayoutRectangle} from 'react-native';
 import {MainTabNavigationProps, MainTabParamList} from '../navigations/MainTab';
 import {useIsFocused} from '@react-navigation/native';
+import * as ImageManipulator from 'expo-image-manipulator';
 import {getString} from '../../../STRINGS';
+import {CameraType} from 'expo-camera/build/Camera.types';
+import ImageCropper from '../../utils/ImageCropper';
 
 const Container = styled.View`
   flex: 1;
@@ -39,6 +42,14 @@ const ShootingButtonWrapper = styled.View`
 
   flex-direction: row;
   justify-content: center;
+`;
+
+const ButtonWrapper = styled.View`
+  flex: 0.1;
+  align-self: stretch;
+  border-top-width: 1px;
+
+  flex-direction: row;
 `;
 
 const ShootingButton = styled.TouchableOpacity`
@@ -94,13 +105,16 @@ const MobileCam: FC<Props> = ({navigation}) => {
     boolean | null
   >(null);
 
-  const [type, setType] = useState(Camera.Constants.Type.back);
-  const [isCameraReady, setIsCameraReday] = useState(false);
+  const [type, setType] = useState<CameraType>(Camera.Constants.Type.back);
+  const [isCameraReady, setIsCameraReday] = useState<boolean>(false);
   const [previewVisible, setPreviewVisbile] = useState<boolean>(false);
 
   const [capturedImage, setCapturedImage] = useState<CapturedImage | null>(
     null,
   );
+
+  const [cropperContainer, setCropperContainer] =
+    useState<LayoutRectangle | null>(null);
 
   const isFocused = useIsFocused();
 
@@ -147,14 +161,39 @@ const MobileCam: FC<Props> = ({navigation}) => {
     });
   };
 
+  const manipulateImage = async (
+    width: number,
+    height: number,
+    offsetX: number,
+    offsetY: number,
+  ): Promise<void> => {
+    if (capturedImage)
+      ImageManipulator.manipulateAsync(
+        capturedImage.uri,
+        [
+          {
+            crop: {
+              originX: offsetX, // position left
+              originY: offsetY, // position top
+              width: width,
+              height: height,
+            },
+          },
+        ],
+        {compress: 1, format: ImageManipulator.SaveFormat.PNG},
+      );
+  };
+
   return (
     <Container>
       {previewVisible && capturedImage ? (
-        <ImagePreviewWrapper>
+        <ImagePreviewWrapper
+          onLayout={({nativeEvent: {layout}}) => setCropperContainer(layout)}>
           <CancelButton onPress={resetPreviewImage}>
             <Text style={{fontSize: 30}}>X</Text>
           </CancelButton>
           <ImagePreview source={{uri: capturedImage.uri}} />
+          {cropperContainer && <ImageCropper {...cropperContainer} />}
         </ImagePreviewWrapper>
       ) : (
         <Camera
@@ -168,13 +207,7 @@ const MobileCam: FC<Props> = ({navigation}) => {
           </ShootingButtonWrapper>
         </Camera>
       )}
-      <View
-        style={{
-          flex: 0.1,
-          alignSelf: 'stretch',
-          borderTopWidth: 1,
-          flexDirection: 'row',
-        }}>
+      <ButtonWrapper>
         <Styledbutton
           onPress={() => {
             setType(
@@ -185,10 +218,13 @@ const MobileCam: FC<Props> = ({navigation}) => {
           }}>
           <Typography>{getString('FLIP')}</Typography>
         </Styledbutton>
+        <Styledbutton onPress={() => manipulateImage}>
+          <Typography> {getString('CROP')}</Typography>
+        </Styledbutton>
         <Styledbutton onPress={imageProccessing}>
           <Typography> {getString('SEARCH')}</Typography>
         </Styledbutton>
-      </View>
+      </ButtonWrapper>
     </Container>
   );
 };

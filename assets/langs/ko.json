@@ -16,5 +16,6 @@
   "RESULT": "결과",
   "PICK_AN_IMAGE": "이미지 선택",
   "SELECT_IMAGE_DESCRIPTION": "갤러리에서 이미지를 선택해주세요.",
-  "RESULT_DESCRIPTION": "이미지를 선택해주세요."
+  "RESULT_DESCRIPTION": "이미지를 선택해주세요.",
+  "CROP": "자르기"
 }
