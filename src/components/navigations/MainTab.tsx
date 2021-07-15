@@ -6,16 +6,16 @@ import {
   createBottomTabNavigator,
 } from '@react-navigation/bottom-tabs';
 import {RootStackNavigationProps, RootStackParamList} from './RootStack';
-import Result from '../pages/Result';
-import Gallery from '../pages/Gallery';
-import MobileCam from '../pages/MobileCam';
+import ResultPage from '../pages/ResultPage';
+import GalleryPage from '../pages/GalleryPage';
+import CameraPage from '../pages/CameraPage';
 import CustomTabBar from '../uis/CustomTabBar';
 import {getString} from '../../../STRINGS';
 
 export type MainTabParamList = {
-  mobileCam: undefined;
-  Gallery: undefined;
-  Result: {
+  CameraPage: undefined;
+  GalleryPage: undefined;
+  ResultPage: {
     imageUri?: string;
   };
 };
@@ -39,23 +39,23 @@ interface Props {
 const MainTab: FC<Props> = () => {
   return (
     <Tab.Navigator
-      initialRouteName="mobileCam"
+      initialRouteName="CameraPage"
       tabBar={(tabBarProps: BottomTabBarProps) => (
         <CustomTabBar {...tabBarProps} />
       )}>
       <Tab.Screen
-        name="mobileCam"
-        component={MobileCam}
+        name="CameraPage"
+        component={CameraPage}
         options={{title: getString('CAMERA')}}
       />
       <Tab.Screen
-        name="Gallery"
-        component={Gallery}
+        name="GalleryPage"
+        component={GalleryPage}
         options={{title: getString('IMAGE')}}
       />
       <Tab.Screen
-        name="Result"
-        component={Result}
+        name="ResultPage"
+        component={ResultPage}
         options={{title: getString('RESULT')}}
       />
     </Tab.Navigator>

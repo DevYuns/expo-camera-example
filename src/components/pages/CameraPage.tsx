@@ -1,14 +1,14 @@
 import styled from '@emotion/native';
 import {RouteProp} from '@react-navigation/core';
 import {Camera} from 'expo-camera';
-import React, {FC, useEffect, useRef, useState} from 'react';
+import React, {FC, useCallback, useEffect, useRef, useState} from 'react';
 import {View, Text, LayoutRectangle} from 'react-native';
 import {MainTabNavigationProps, MainTabParamList} from '../navigations/MainTab';
 import {useIsFocused} from '@react-navigation/native';
 import * as ImageManipulator from 'expo-image-manipulator';
 import {getString} from '../../../STRINGS';
 import {CameraType} from 'expo-camera/build/Camera.types';
-import ImageCropper from '../../utils/ImageCropper';
+import Preview from '../uis/Preview';
 
 const Container = styled.View`
   flex: 1;
@@ -18,20 +18,6 @@ const Container = styled.View`
   flex-direction: column;
   justify-content: center;
   align-items: center;
-`;
-
-const ImagePreviewWrapper = styled.View`
-  flex: 1;
-  align-self: stretch;
-
-  justify-content: center;
-  align-items: center;
-`;
-
-const ImagePreview = styled.Image`
-  flex: 1;
-  align-self: stretch;
-  margin: 60px 30px;
 `;
 
 const ShootingButtonWrapper = styled.View`
@@ -60,21 +46,6 @@ const ShootingButton = styled.TouchableOpacity`
   background-color: #fff;
 `;
 
-const CancelButton = styled.TouchableOpacity`
-  position: absolute;
-  top: 45px;
-  right: 18px;
-  z-index: 99;
-  width: 30px;
-  height: 30px;
-  border-radius: 50px;
-  border-width: 1px;
-  background-color: #fff;
-
-  justify-content: center;
-  align-items: center;
-`;
-
 const Typography = styled.Text`
   font-size: 20px;
   color: ${({theme}) => theme.text};
@@ -89,36 +60,100 @@ const Styledbutton = styled.TouchableOpacity`
   align-items: center;
 `;
 
-type CapturedImage = {
+export type PhotoType = {
   height: number;
   width: number;
   uri: string;
 };
 
+export type CropDimension = {
+  offsetX: number;
+  offsetY: number;
+  width: number;
+  height: number;
+};
+
 interface Props {
-  navigation: MainTabNavigationProps<'mobileCam'>;
-  route: RouteProp<MainTabParamList, 'mobileCam'>;
+  navigation: MainTabNavigationProps<'CameraPage'>;
+  route: RouteProp<MainTabParamList, 'CameraPage'>;
 }
 
-const MobileCam: FC<Props> = ({navigation}) => {
+const CameraPage: FC<Props> = ({navigation}) => {
   const [hasCameraPermission, setHasCameraPermission] = useState<
     boolean | null
   >(null);
 
-  const [type, setType] = useState<CameraType>(Camera.Constants.Type.back);
-  const [isCameraReady, setIsCameraReday] = useState<boolean>(false);
-  const [previewVisible, setPreviewVisbile] = useState<boolean>(false);
-
-  const [capturedImage, setCapturedImage] = useState<CapturedImage | null>(
-    null,
+  const [cameraType, setCameraType] = useState<CameraType>(
+    Camera.Constants.Type.back,
   );
+
+  const [isCameraReady, setIsCameraReday] = useState<boolean>(false);
+
+  const [photo, setPhoto] = useState<PhotoType | null>(null);
 
   const [cropperContainer, setCropperContainer] =
     useState<LayoutRectangle | null>(null);
 
+  const [cropDimention, setCropDimention] = useState<CropDimension | null>(
+    null,
+  );
+
   const isFocused = useIsFocused();
 
   const cameraRef = useRef<Camera>(null);
+
+  const takePickture = useCallback(async (): Promise<void> => {
+    if (!isCameraReady) return;
+
+    if (cameraRef.current !== null) {
+      const result = await cameraRef.current.takePictureAsync();
+
+      const resizedResult = await ImageManipulator.manipulateAsync(result.uri, [
+        {
+          resize: {
+            width: cropperContainer?.width,
+            height: cropperContainer?.height,
+          },
+        },
+      ]);
+
+      setPhoto(resizedResult);
+    }
+  }, [isCameraReady, cropperContainer]);
+
+  const resetPreviewImage = (): void => {
+    setPhoto(null);
+  };
+
+  const sendToResultPage = (): void => {
+    if (photo === null) return;
+
+    navigation.navigate('ResultPage', {
+      imageUri: photo.uri,
+    });
+  };
+
+  const manipulateImageWithCrop = async (
+    width: number,
+    height: number,
+    offsetX: number,
+    offsetY: number,
+  ): Promise<void> => {
+    if (photo) {
+      const result = await ImageManipulator.manipulateAsync(photo.uri, [
+        {
+          crop: {
+            originX: offsetX,
+            originY: offsetY,
+            width: width,
+            height: height,
+          },
+        },
+      ]);
+
+      setPhoto(result);
+    }
+  };
 
   useEffect(() => {
     (async () => {
@@ -137,68 +172,21 @@ const MobileCam: FC<Props> = ({navigation}) => {
 
   if (!isFocused) return <View />;
 
-  const takePickture = async (): Promise<void> => {
-    if (!isCameraReady) return;
-
-    if (cameraRef.current !== null) {
-      const photo = await cameraRef.current.takePictureAsync();
-
-      setPreviewVisbile(true);
-      setCapturedImage(photo);
-    }
-  };
-
-  const resetPreviewImage = (): void => {
-    setPreviewVisbile(false);
-    setCapturedImage(null);
-  };
-
-  const imageProccessing = (): void => {
-    if (capturedImage === null) return;
-
-    navigation.navigate('Result', {
-      imageUri: capturedImage.uri,
-    });
-  };
-
-  const manipulateImage = async (
-    width: number,
-    height: number,
-    offsetX: number,
-    offsetY: number,
-  ): Promise<void> => {
-    if (capturedImage)
-      ImageManipulator.manipulateAsync(
-        capturedImage.uri,
-        [
-          {
-            crop: {
-              originX: offsetX, // position left
-              originY: offsetY, // position top
-              width: width,
-              height: height,
-            },
-          },
-        ],
-        {compress: 1, format: ImageManipulator.SaveFormat.PNG},
-      );
-  };
+  console.log('제발', cropDimention);
 
   return (
     <Container>
-      {previewVisible && capturedImage ? (
-        <ImagePreviewWrapper
-          onLayout={({nativeEvent: {layout}}) => setCropperContainer(layout)}>
-          <CancelButton onPress={resetPreviewImage}>
-            <Text style={{fontSize: 30}}>X</Text>
-          </CancelButton>
-          <ImagePreview source={{uri: capturedImage.uri}} />
-          {cropperContainer && <ImageCropper {...cropperContainer} />}
-        </ImagePreviewWrapper>
+      {photo ? (
+        <Preview
+          photo={photo}
+          cropperContainer={cropperContainer}
+          setCropDimention={setCropDimention}
+          onLayout={({nativeEvent: {layout}}) => setCropperContainer(layout)}
+        />
       ) : (
         <Camera
           ref={cameraRef}
-          type={type}
+          type={cameraType}
           autoFocus={true}
           style={{flex: 1, alignSelf: 'stretch'}}
           onCameraReady={() => setIsCameraReday(true)}>
@@ -208,20 +196,32 @@ const MobileCam: FC<Props> = ({navigation}) => {
         </Camera>
       )}
       <ButtonWrapper>
+        <Styledbutton onPress={resetPreviewImage}>
+          <Typography>{getString('RESET')}</Typography>
+        </Styledbutton>
         <Styledbutton
           onPress={() => {
-            setType(
-              type === Camera.Constants.Type.back
+            setCameraType(
+              cameraType === Camera.Constants.Type.back
                 ? Camera.Constants.Type.front
                 : Camera.Constants.Type.back,
             );
           }}>
           <Typography>{getString('FLIP')}</Typography>
         </Styledbutton>
-        <Styledbutton onPress={() => manipulateImage}>
+        <Styledbutton
+          onPress={async () => {
+            if (cropDimention)
+              manipulateImageWithCrop(
+                cropDimention.width,
+                cropDimention.height,
+                cropDimention.offsetX,
+                cropDimention.offsetY,
+              );
+          }}>
           <Typography> {getString('CROP')}</Typography>
         </Styledbutton>
-        <Styledbutton onPress={imageProccessing}>
+        <Styledbutton onPress={sendToResultPage}>
           <Typography> {getString('SEARCH')}</Typography>
         </Styledbutton>
       </ButtonWrapper>
@@ -229,4 +229,4 @@ const MobileCam: FC<Props> = ({navigation}) => {
   );
 };
 
-export default MobileCam;
+export default CameraPage;

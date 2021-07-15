@@ -1,5 +1,5 @@
 import styled from '@emotion/native';
-import React, {FC} from 'react';
+import React, {FC, useEffect, useRef, useState} from 'react';
 import {
   PanGestureHandler,
   PanGestureHandlerGestureEvent,
@@ -8,21 +8,21 @@ import Animated, {
   useAnimatedGestureHandler,
   useAnimatedStyle,
   useSharedValue,
-  withDecay,
 } from 'react-native-reanimated';
-import {clamp, withBouncing} from 'react-native-redash';
+import {clamp} from 'react-native-redash';
+import {CropDimension} from '../components/pages/CameraPage';
 
-const Container = styled.View`
-  flex: 1;
-  align-self: stretch;
-  background-color: red;
-  z-index: 10;
+const Container = styled.View<{width: number; height: number}>`
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: ${({width}) => width}px;
+  height: ${({height}) => height}px;
+  background-color: #000;
+  opacity: 0.5;
 `;
 
 const Crop = styled.View`
-  width: 100px;
-  height: 100px;
-
   border: 2px solid white;
   background-color: transparent;
 `;
@@ -30,11 +30,33 @@ const Crop = styled.View`
 interface Props {
   width: number;
   height: number;
+  setCropDimention: (value: CropDimension) => void;
 }
 
-const ImageCropper: FC<Props> = ({width, height}) => {
+const ImageCropper: FC<Props> = ({
+  width: containerWidth,
+  height: containerHeight,
+  setCropDimention,
+}) => {
+  const [captureLayout, setCaptureLayout] = useState<boolean>(false);
+
   const translateX = useSharedValue(0);
   const translateY = useSharedValue(0);
+
+  const cropHeight = useRef(200);
+  const cropWidth = useRef(200);
+  const cropX = useRef(0);
+  const cropY = useRef(0);
+
+  useEffect(() => {
+    if (captureLayout)
+      setCropDimention({
+        width: cropWidth.current,
+        height: cropHeight.current,
+        offsetX: cropX.current,
+        offsetY: cropY.current,
+      });
+  }, [captureLayout, setCropDimention]);
 
   const onGestureEvent = useAnimatedGestureHandler<
     PanGestureHandlerGestureEvent,
@@ -45,25 +67,21 @@ const ImageCropper: FC<Props> = ({width, height}) => {
       ctx.offsetY = translateY.value;
     },
     onActive: (event, ctx) => {
-      translateX.value = ctx.offsetX + event.translationX;
-      translateY.value = ctx.offsetY + event.translationY;
-    },
-    // onEnd: ({velocityX, velocityY}) => {
-    //   translateX.value = withBouncing(
-    //     withDecay({
-    //       velocity: velocityX,
-    //     }),
-    //     0,
-    //     boundX,
-    //   );
+      translateX.value = clamp(
+        ctx.offsetX + event.translationX,
+        0,
+        containerWidth - cropWidth.current,
+      );
 
-    //   translateY.value = withBouncing(
-    //     withDecay({
-    //       velocity: velocityY,
-    //     }),
-    //     0,
-    //     boundY,
-    //   );
+      translateY.value = clamp(
+        ctx.offsetY + event.translationY,
+        0,
+        containerHeight - cropHeight.current,
+      );
+    },
+    // onEnd: (_, ctx) => {
+    //   cropX.current = ctx.offsetX;
+    //   cropX.current = ctx.offsetY;
     // },
   });
 
@@ -77,10 +95,19 @@ const ImageCropper: FC<Props> = ({width, height}) => {
   });
 
   return (
-    <Container>
+    <Container width={containerWidth} height={containerHeight}>
       <PanGestureHandler onGestureEvent={onGestureEvent}>
         <Animated.View style={animStyle}>
-          <Crop />
+          <Crop
+            style={{width: cropWidth.current, height: cropHeight.current}}
+            onLayout={({nativeEvent: {layout}}) => {
+              cropWidth.current = layout.width;
+              cropHeight.current = layout.height;
+              cropX.current = layout.x;
+              cropY.current = layout.y;
+              setCaptureLayout(true);
+            }}
+          />
         </Animated.View>
       </PanGestureHandler>
     </Container>
