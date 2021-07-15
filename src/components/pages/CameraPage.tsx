@@ -2,9 +2,8 @@ import styled from '@emotion/native';
 import {RouteProp} from '@react-navigation/core';
 import {Camera} from 'expo-camera';
 import React, {FC, useCallback, useEffect, useRef, useState} from 'react';
-import {View, Text, LayoutRectangle} from 'react-native';
+import {Text} from 'react-native';
 import {MainTabNavigationProps, MainTabParamList} from '../navigations/MainTab';
-import {useIsFocused} from '@react-navigation/native';
 import * as ImageManipulator from 'expo-image-manipulator';
 import {getString} from '../../../STRINGS';
 import {CameraType} from 'expo-camera/build/Camera.types';
@@ -91,14 +90,9 @@ const CameraPage: FC<Props> = ({navigation}) => {
 
   const [photo, setPhoto] = useState<PhotoType | null>(null);
 
-  const [cropperContainer, setCropperContainer] =
-    useState<LayoutRectangle | null>(null);
-
   const [cropDimention, setCropDimention] = useState<CropDimension | null>(
     null,
   );
-
-  const isFocused = useIsFocused();
 
   const cameraRef = useRef<Camera>(null);
 
@@ -108,18 +102,9 @@ const CameraPage: FC<Props> = ({navigation}) => {
     if (cameraRef.current !== null) {
       const result = await cameraRef.current.takePictureAsync();
 
-      const resizedResult = await ImageManipulator.manipulateAsync(result.uri, [
-        {
-          resize: {
-            width: cropperContainer?.width,
-            height: cropperContainer?.height,
-          },
-        },
-      ]);
-
-      setPhoto(resizedResult);
+      setPhoto(result);
     }
-  }, [isCameraReady, cropperContainer]);
+  }, [isCameraReady]);
 
   const resetPreviewImage = (): void => {
     setPhoto(null);
@@ -170,19 +155,10 @@ const CameraPage: FC<Props> = ({navigation}) => {
   if (hasCameraPermission === false || hasCameraPermission === null)
     return <Text>Can not access to camera</Text>;
 
-  if (!isFocused) return <View />;
-
-  console.log('제발', cropDimention);
-
   return (
     <Container>
       {photo ? (
-        <Preview
-          photo={photo}
-          cropperContainer={cropperContainer}
-          setCropDimention={setCropDimention}
-          onLayout={({nativeEvent: {layout}}) => setCropperContainer(layout)}
-        />
+        <Preview photo={photo} setCropDimention={setCropDimention} />
       ) : (
         <Camera
           ref={cameraRef}
