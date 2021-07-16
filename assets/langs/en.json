@@ -16,5 +16,7 @@
   "RESULT": "Result",
   "PICK_AN_IMAGE": "Pick an image",
   "SELECT_IMAGE_DESCRIPTION": "Select an image from gallery",
-  "RESULT_DESCRIPTION": "Give me an image."
+  "RESULT_DESCRIPTION": "Give me an image.",
+  "CROP": "crop",
+  "RESET": "RESET"
 }

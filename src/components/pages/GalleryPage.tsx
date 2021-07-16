@@ -43,11 +43,11 @@ type ImageType = {
 };
 
 interface Props {
-  navigation: MainTabNavigationProps<'Gallery'>;
-  route: RouteProp<MainTabParamList, 'Gallery'>;
+  navigation: MainTabNavigationProps<'GalleryPage'>;
+  route: RouteProp<MainTabParamList, 'GalleryPage'>;
 }
 
-const Gallery: FC<Props> = ({navigation}) => {
+const GalleryPage: FC<Props> = ({navigation}) => {
   const [image, setImage] = useState<ImageType | null>(null);
 
   useEffect(() => {
@@ -99,7 +99,7 @@ const Gallery: FC<Props> = ({navigation}) => {
         </Styledbutton>
         <Styledbutton
           onPress={() => {
-            navigation.navigate('Result', {
+            navigation.navigate('ResultPage', {
               imageUri: image?.uri,
             });
           }}>
@@ -110,4 +110,4 @@ const Gallery: FC<Props> = ({navigation}) => {
   );
 };
 
-export default Gallery;
+export default GalleryPage;
