@@ -18,5 +18,6 @@
   "SELECT_IMAGE_DESCRIPTION": "갤러리에서 이미지를 선택해주세요.",
   "RESULT_DESCRIPTION": "이미지를 선택해주세요.",
   "CROP": "자르기",
-  "RESET": "초기화"
+  "RESET": "초기화",
+  "CAPTURE_DESC": "대상을 네모 안에 위치시켜 촬영해주세요."
 }

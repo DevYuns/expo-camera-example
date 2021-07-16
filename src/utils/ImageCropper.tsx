@@ -52,7 +52,7 @@ const ImageCropper: FC<Props> = ({
   const cropX = useSharedValue(0);
   const cropY = useSharedValue(0);
 
-  const setDimentionOnUIJS = (
+  const setDimentionOnUI_JS = (
     width: number,
     height: number,
     offsetX: number,
@@ -78,8 +78,7 @@ const ImageCropper: FC<Props> = ({
 
   const onGestureEvent = useAnimatedGestureHandler<
     PanGestureHandlerGestureEvent,
-    // prettier-ignore
-    {offsetX: number; offsetY: number;}
+    {offsetX: number; offsetY: number}
   >({
     onStart: (_, ctx) => {
       ctx.offsetX = translateX.value;
@@ -102,7 +101,7 @@ const ImageCropper: FC<Props> = ({
       cropX.value = translateX.value;
       cropY.value = translateY.value;
 
-      runOnJS(setDimentionOnUIJS)(
+      runOnJS(setDimentionOnUI_JS)(
         cropWidth.value,
         cropHeight.value,
         cropX.value,

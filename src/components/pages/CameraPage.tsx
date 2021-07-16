@@ -1,8 +1,8 @@
 import styled from '@emotion/native';
-import {RouteProp} from '@react-navigation/core';
+import {RouteProp, useIsFocused} from '@react-navigation/core';
 import {Camera} from 'expo-camera';
 import React, {FC, useCallback, useEffect, useRef, useState} from 'react';
-import {LayoutRectangle, Text} from 'react-native';
+import {LayoutRectangle, Text, View} from 'react-native';
 import {MainTabNavigationProps, MainTabParamList} from '../navigations/MainTab';
 import * as ImageManipulator from 'expo-image-manipulator';
 import {getString} from '../../../STRINGS';
@@ -22,6 +22,21 @@ const Container = styled.View`
 const ImageWrapper = styled.View`
   flex: 1;
   align-self: stretch;
+`;
+
+const Window = styled.View`
+  width: 300px;
+  height: 400px;
+
+  border: 2px solid white;
+`;
+
+const CameraDesc = styled.Text`
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  font-size: 18px;
+  color: white;
 `;
 
 const ShootingButtonWrapper = styled.View`
@@ -86,6 +101,8 @@ const CameraPage: FC<Props> = ({navigation}) => {
   const [hasCameraPermission, setHasCameraPermission] = useState<
     boolean | null
   >(null);
+
+  const isFocused = useIsFocused();
 
   const [cameraType, setCameraType] = useState<CameraType>(
     Camera.Constants.Type.back,
@@ -167,19 +184,21 @@ const CameraPage: FC<Props> = ({navigation}) => {
   useEffect(() => {
     (async () => {
       try {
-        const {status} = await Camera.requestPermissionsAsync();
+        if (hasCameraPermission === null || hasCameraPermission === false) {
+          const {status} = await Camera.requestPermissionsAsync();
 
-        setHasCameraPermission(status === 'granted');
+          setHasCameraPermission(status === 'granted');
+        }
       } catch (error) {
         console.error(error);
       }
     })();
-  }, []);
+  }, [hasCameraPermission]);
+
+  if (!isFocused) return <View />;
 
   if (hasCameraPermission === false || hasCameraPermission === null)
     return <Text>Can not access to camera</Text>;
-
-  console.log('결과', cropDimention);
 
   return (
     <Container>
@@ -192,8 +211,15 @@ const CameraPage: FC<Props> = ({navigation}) => {
             ref={cameraRef}
             type={cameraType}
             autoFocus={true}
-            style={{flex: 1, alignSelf: 'stretch'}}
+            style={{
+              flex: 1,
+              alignSelf: 'stretch',
+              justifyContent: 'center',
+              alignItems: 'center',
+            }}
             onCameraReady={() => setIsCameraReday(true)}>
+            <CameraDesc>{getString('CAPTURE_DESC')}</CameraDesc>
+            <Window />
             <ShootingButtonWrapper>
               <ShootingButton onPress={takePicture} />
             </ShootingButtonWrapper>

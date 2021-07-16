@@ -18,5 +18,6 @@
   "SELECT_IMAGE_DESCRIPTION": "Select an image from gallery",
   "RESULT_DESCRIPTION": "Give me an image.",
   "CROP": "crop",
-  "RESET": "RESET"
+  "RESET": "RESET",
+  "CAPTURE_DESC": "Please take a picture after Placing an object center of the White box"
 }
