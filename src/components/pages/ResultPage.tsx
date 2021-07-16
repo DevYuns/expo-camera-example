@@ -34,8 +34,8 @@ const Typography = styled.Text`
 `;
 
 interface Props {
-  navigation: MainTabNavigationProps<'Result'>;
-  route: RouteProp<MainTabParamList, 'Result'>;
+  navigation: MainTabNavigationProps<'ResultPage'>;
+  route: RouteProp<MainTabParamList, 'ResultPage'>;
 }
 
 const Result: FC<Props> = ({route}) => {

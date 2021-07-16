@@ -2,7 +2,7 @@ import styled from '@emotion/native';
 import {RouteProp} from '@react-navigation/core';
 import {Camera} from 'expo-camera';
 import React, {FC, useCallback, useEffect, useRef, useState} from 'react';
-import {Text} from 'react-native';
+import {LayoutRectangle, Text} from 'react-native';
 import {MainTabNavigationProps, MainTabParamList} from '../navigations/MainTab';
 import * as ImageManipulator from 'expo-image-manipulator';
 import {getString} from '../../../STRINGS';
@@ -17,6 +17,11 @@ const Container = styled.View`
   flex-direction: column;
   justify-content: center;
   align-items: center;
+`;
+
+const ImageWrapper = styled.View`
+  flex: 1;
+  align-self: stretch;
 `;
 
 const ShootingButtonWrapper = styled.View`
@@ -94,17 +99,36 @@ const CameraPage: FC<Props> = ({navigation}) => {
     null,
   );
 
+  const [imageWrapperLayout, setImageWrapperLayout] =
+    useState<LayoutRectangle | null>(null);
+
   const cameraRef = useRef<Camera>(null);
 
-  const takePickture = useCallback(async (): Promise<void> => {
+  const takePicture = useCallback(async (): Promise<void> => {
     if (!isCameraReady) return;
 
-    if (cameraRef.current !== null) {
-      const result = await cameraRef.current.takePictureAsync();
+    try {
+      if (cameraRef.current !== null) {
+        const result = await cameraRef.current.takePictureAsync();
 
-      setPhoto(result);
+        const resizedResult = await ImageManipulator.manipulateAsync(
+          result.uri,
+          [
+            {
+              resize: {
+                width: imageWrapperLayout?.width,
+                height: imageWrapperLayout?.height,
+              },
+            },
+          ],
+        );
+
+        setPhoto(resizedResult);
+      }
+    } catch (error) {
+      console.log(error);
     }
-  }, [isCameraReady]);
+  }, [isCameraReady, imageWrapperLayout]);
 
   const resetPreviewImage = (): void => {
     setPhoto(null);
@@ -155,22 +179,27 @@ const CameraPage: FC<Props> = ({navigation}) => {
   if (hasCameraPermission === false || hasCameraPermission === null)
     return <Text>Can not access to camera</Text>;
 
+  console.log('결과', cropDimention);
+
   return (
     <Container>
-      {photo ? (
-        <Preview photo={photo} setCropDimention={setCropDimention} />
-      ) : (
-        <Camera
-          ref={cameraRef}
-          type={cameraType}
-          autoFocus={true}
-          style={{flex: 1, alignSelf: 'stretch'}}
-          onCameraReady={() => setIsCameraReday(true)}>
-          <ShootingButtonWrapper>
-            <ShootingButton onPress={takePickture} />
-          </ShootingButtonWrapper>
-        </Camera>
-      )}
+      <ImageWrapper
+        onLayout={({nativeEvent: {layout}}) => setImageWrapperLayout(layout)}>
+        {photo ? (
+          <Preview photo={photo} setCropDimention={setCropDimention} />
+        ) : (
+          <Camera
+            ref={cameraRef}
+            type={cameraType}
+            autoFocus={true}
+            style={{flex: 1, alignSelf: 'stretch'}}
+            onCameraReady={() => setIsCameraReday(true)}>
+            <ShootingButtonWrapper>
+              <ShootingButton onPress={takePicture} />
+            </ShootingButtonWrapper>
+          </Camera>
+        )}
+      </ImageWrapper>
       <ButtonWrapper>
         <Styledbutton onPress={resetPreviewImage}>
           <Typography>{getString('RESET')}</Typography>

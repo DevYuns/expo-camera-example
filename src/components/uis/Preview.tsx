@@ -1,9 +1,8 @@
 import styled from '@emotion/native';
-import React, {FC, useEffect, useState} from 'react';
+import React, {FC, useState} from 'react';
 import ImageCropper from '../../utils/ImageCropper';
 import {PhotoType, CropDimension} from '../pages/CameraPage';
 import {LayoutRectangle} from 'react-native';
-import * as ImageManipulator from 'expo-image-manipulator';
 
 const Container = styled.View`
   flex: 1;
@@ -27,27 +26,10 @@ const Preview: FC<Props> = ({photo, setCropDimention}) => {
   const [containerLayout, setContainerLayout] =
     useState<LayoutRectangle | null>(null);
 
-  const [resizedPhoto, setResizedPhoto] = useState<PhotoType | null>(null);
-
-  // useEffect(() => {
-  //   (async () => {
-  //     const result = await ImageManipulator.manipulateAsync(photo.uri, [
-  //       {
-  //         resize: {
-  //           width: containerLayout?.width,
-  //           height: containerLayout?.height,
-  //         },
-  //       },
-  //     ]);
-
-  //     setResizedPhoto(result);
-  //   })();
-  // }, [photo, containerLayout]);
-
   return (
     <Container
       onLayout={({nativeEvent: {layout}}) => setContainerLayout(layout)}>
-      {resizedPhoto && <ImagePreview source={{uri: resizedPhoto.uri}} />}
+      {photo && <ImagePreview source={{uri: photo.uri}} />}
       {containerLayout && (
         <ImageCropper
           {...containerLayout}
