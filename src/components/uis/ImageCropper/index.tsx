@@ -1,5 +1,5 @@
 import styled from '@emotion/native';
-import React, {FC, useEffect, useState} from 'react';
+import React, {FC} from 'react';
 import {
   PanGestureHandler,
   PanGestureHandlerGestureEvent,
@@ -11,10 +11,14 @@ import Animated, {
   useSharedValue,
 } from 'react-native-reanimated';
 import {clamp} from 'react-native-redash';
-import {CropDimension} from '../components/pages/CameraPage';
+import {CropDimension} from '../../pages/CameraPage';
+import ResizableDotA from './ResizableDotA';
+import ResizableDotB from './ResizableDotB';
+import ResizableDotC from './ResizableDotC';
+import ResizableDotD from './ResizableDotD';
 
-const DEFAULT_CROP_WIDTH = 200;
-const DEFAULT_CROP_HEIGHT = 200;
+export const DEFAULT_CROP_WIDTH = 200;
+export const DEFAULT_CROP_HEIGHT = 200;
 
 const Container = styled.View<{width: number; height: number}>`
   position: absolute;
@@ -42,15 +46,14 @@ const ImageCropper: FC<Props> = ({
   height: containerHeight,
   setCropDimention,
 }) => {
-  const [captureLayout, setCaptureLayout] = useState<boolean>(false);
+  const translateX = useSharedValue((containerWidth - DEFAULT_CROP_WIDTH) / 2);
 
-  const translateX = useSharedValue(0);
-  const translateY = useSharedValue(0);
+  const translateY = useSharedValue(
+    (containerHeight - DEFAULT_CROP_HEIGHT) / 2,
+  );
 
-  const cropHeight = useSharedValue(0);
-  const cropWidth = useSharedValue(0);
-  const cropX = useSharedValue(0);
-  const cropY = useSharedValue(0);
+  const cropHeight = useSharedValue(DEFAULT_CROP_HEIGHT);
+  const cropWidth = useSharedValue(DEFAULT_CROP_WIDTH);
 
   const setDimentionOnUI_JS = (
     width: number,
@@ -65,16 +68,6 @@ const ImageCropper: FC<Props> = ({
       offsetY,
     });
   };
-
-  useEffect(() => {
-    if (captureLayout)
-      setCropDimention({
-        width: cropWidth.value,
-        height: cropHeight.value,
-        offsetX: cropX.value,
-        offsetY: cropY.value,
-      });
-  }, [captureLayout, setCropDimention, cropWidth, cropHeight, cropX, cropY]);
 
   const onGestureEvent = useAnimatedGestureHandler<
     PanGestureHandlerGestureEvent,
@@ -98,19 +91,16 @@ const ImageCropper: FC<Props> = ({
       );
     },
     onEnd: (_) => {
-      cropX.value = translateX.value;
-      cropY.value = translateY.value;
-
       runOnJS(setDimentionOnUI_JS)(
         cropWidth.value,
         cropHeight.value,
-        cropX.value,
-        cropY.value,
+        translateX.value,
+        translateY.value,
       );
     },
   });
 
-  const animStyle = useAnimatedStyle(() => {
+  const dragAnimStyle = useAnimatedStyle(() => {
     return {
       transform: [
         {translateX: translateX.value},
@@ -122,19 +112,33 @@ const ImageCropper: FC<Props> = ({
   return (
     <Container width={containerWidth} height={containerHeight}>
       <PanGestureHandler onGestureEvent={onGestureEvent}>
-        <Animated.View style={animStyle}>
-          <CropWindow
-            style={{width: DEFAULT_CROP_WIDTH, height: DEFAULT_CROP_HEIGHT}}
-            onLayout={({nativeEvent: {layout}}) => {
-              cropWidth.value = layout.width;
-              cropHeight.value = layout.height;
-              cropX.value = layout.x;
-              cropY.value = layout.y;
-              setCaptureLayout(true);
-            }}
-          />
+        <Animated.View>
+          <Animated.View style={dragAnimStyle}>
+            <CropWindow
+              style={{width: DEFAULT_CROP_WIDTH, height: DEFAULT_CROP_HEIGHT}}
+            />
+          </Animated.View>
+          <ResizableDotA offsetX={translateX} offsetY={translateY} />
         </Animated.View>
       </PanGestureHandler>
+      <ResizableDotB
+        offsetX={translateX}
+        offsetY={translateY}
+        containerWidth={containerWidth}
+        containerHeight={containerHeight}
+      />
+      <ResizableDotC
+        offsetX={translateX}
+        offsetY={translateY}
+        containerWidth={containerWidth}
+        containerHeight={containerHeight}
+      />
+      <ResizableDotD
+        offsetX={translateX}
+        offsetY={translateY}
+        containerWidth={containerWidth}
+        containerHeight={containerHeight}
+      />
     </Container>
   );
 };
