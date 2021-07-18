@@ -12,10 +12,11 @@ import Animated, {
 } from 'react-native-reanimated';
 import {clamp} from 'react-native-redash';
 import {CropDimension} from '../../pages/CameraPage';
-import ResizableDotA from './ResizableDotA';
-import ResizableDotB from './ResizableDotB';
-import ResizableDotC from './ResizableDotC';
-import ResizableDotD from './ResizableDotD';
+import DotA from './DotA';
+import DotB from './DotB';
+import DotC from './DotC';
+import DotD from './DotD';
+import Resizable from './Resizable';
 
 export const DEFAULT_CROP_WIDTH = 200;
 export const DEFAULT_CROP_HEIGHT = 200;
@@ -111,34 +112,37 @@ const ImageCropper: FC<Props> = ({
 
   return (
     <Container width={containerWidth} height={containerHeight}>
+      <DotA
+        pointX={translateX}
+        pointY={translateY}
+        cropHeight={cropHeight}
+        cropWidth={cropWidth}
+      />
+      <DotB
+        pointX={translateX}
+        pointY={translateY}
+        cropHeight={cropHeight}
+        cropWidth={cropWidth}
+      />
+      <DotC
+        pointX={translateX}
+        pointY={translateY}
+        cropHeight={cropHeight}
+        cropWidth={cropWidth}
+      />
+      <DotD
+        pointX={translateX}
+        pointY={translateY}
+        cropHeight={cropHeight}
+        cropWidth={cropWidth}
+      />
       <PanGestureHandler onGestureEvent={onGestureEvent}>
-        <Animated.View>
-          <Animated.View style={dragAnimStyle}>
-            <CropWindow
-              style={{width: DEFAULT_CROP_WIDTH, height: DEFAULT_CROP_HEIGHT}}
-            />
-          </Animated.View>
-          <ResizableDotA offsetX={translateX} offsetY={translateY} />
+        <Animated.View style={dragAnimStyle}>
+          <CropWindow
+            style={{width: cropWidth.value, height: cropHeight.value}}
+          />
         </Animated.View>
       </PanGestureHandler>
-      <ResizableDotB
-        offsetX={translateX}
-        offsetY={translateY}
-        containerWidth={containerWidth}
-        containerHeight={containerHeight}
-      />
-      <ResizableDotC
-        offsetX={translateX}
-        offsetY={translateY}
-        containerWidth={containerWidth}
-        containerHeight={containerHeight}
-      />
-      <ResizableDotD
-        offsetX={translateX}
-        offsetY={translateY}
-        containerWidth={containerWidth}
-        containerHeight={containerHeight}
-      />
     </Container>
   );
 };
