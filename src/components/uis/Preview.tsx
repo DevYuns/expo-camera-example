@@ -1,15 +1,12 @@
 import styled from '@emotion/native';
 import React, {FC, useState} from 'react';
-import ImageCropper from '../../utils/ImageCropper';
+import ImageCropper from './ImageCropper';
 import {PhotoType, CropDimension} from '../pages/CameraPage';
 import {LayoutRectangle} from 'react-native';
 
 const Container = styled.View`
   flex: 1;
   align-self: stretch;
-
-  justify-content: center;
-  align-items: center;
 `;
 
 const ImagePreview = styled.Image`
