@@ -8,14 +8,10 @@ import Animated, {
   runOnJS,
   useAnimatedGestureHandler,
   useAnimatedStyle,
-  useDerivedValue,
   useSharedValue,
 } from 'react-native-reanimated';
 import {clamp} from 'react-native-redash';
 import {CropDimension} from '../../pages/CameraPage';
-
-export const DEFAULT_CROP_WIDTH = 200;
-export const DEFAULT_CROP_HEIGHT = 200;
 
 const Container = styled.View<{width: number; height: number}>`
   position: absolute;
@@ -27,39 +23,10 @@ const Container = styled.View<{width: number; height: number}>`
   opacity: 0.5;
 `;
 
-const CropWindow = styled.View`
-  flex: 1;
-  align-self: stretch;
-  border: 2px solid white;
-  background-color: transparent;
-`;
-
-const DotA = styled.View`
-  position: absolute;
+const Dot = styled.View`
   width: 30px;
   height: 30px;
-  background-color: blue;
-`;
-
-const DotB = styled.View`
-  position: absolute;
-  width: 30px;
-  height: 30px;
-  background-color: blue;
-`;
-
-const DotC = styled.View`
-  position: absolute;
-  width: 30px;
-  height: 30px;
-  background-color: blue;
-`;
-
-const DotD = styled.View`
-  position: absolute;
-  width: 30px;
-  height: 30px;
-  background-color: blue;
+  background-color: red;
 `;
 
 interface Props {
@@ -68,85 +35,21 @@ interface Props {
   setCropDimention: (value: CropDimension) => void;
 }
 
-const ImageCropper: FC<Props> = ({
-  width: containerWidth,
-  height: containerHeight,
+const Refleca: FC<Props> = ({
+  width: limitationWidth,
+  height: limitationHeight,
   setCropDimention,
 }) => {
-  const translateXofA = useSharedValue(
-    (containerWidth - DEFAULT_CROP_WIDTH) / 2,
-  );
+  const DEFAULT_HEIGHT = 200;
+  const DEFAULT_WIDTH = 200;
 
-  const translateYofA = useSharedValue(
-    (containerHeight - DEFAULT_CROP_HEIGHT) / 2,
-  );
+  const minWidth = DEFAULT_WIDTH / 3;
+  const minHeight = DEFAULT_HEIGHT / 3;
 
-  const hasTranslateXofAChanged = useSharedValue(false);
-  const hasTranslateYofAChanged = useSharedValue(false);
-
-  const translateXofB = useSharedValue(
-    translateXofA.value + DEFAULT_CROP_WIDTH,
-  );
-
-  const translateYofB = useSharedValue(translateYofA.value);
-  const hasTranslateXofBChanged = useSharedValue(false);
-  const hasTranslateYofBChanged = useSharedValue(false);
-
-  const translateXofC = useSharedValue(translateXofA.value);
-
-  const translateYofC = useSharedValue(
-    translateYofA.value + DEFAULT_CROP_HEIGHT,
-  );
-
-  const hasTranslateXofCChanged = useSharedValue(false);
-  const hasTranslateYofCChanged = useSharedValue(false);
-
-  const translateXofD = useSharedValue(
-    translateXofA.value + DEFAULT_CROP_WIDTH,
-  );
-
-  const translateYofD = useSharedValue(
-    translateYofA.value + DEFAULT_CROP_HEIGHT,
-  );
-
-  const hasTranslateXofDChanged = useSharedValue(false);
-  const hasTranslateYofDChanged = useSharedValue(false);
-
-  const pointX0 = useDerivedValue(() => {
-    if (hasTranslateXofAChanged.value) return translateXofA.value;
-    else if (hasTranslateXofCChanged.value) return translateXofC.value;
-
-    return translateXofA.value;
-  });
-
-  const pointY0 = useDerivedValue(() => {
-    if (hasTranslateYofAChanged.value) return translateYofA.value;
-    else if (hasTranslateYofBChanged.value) return translateYofB.value;
-
-    return translateYofA.value;
-  });
-
-  const pointX1 = useDerivedValue(() => {
-    if (hasTranslateXofBChanged.value) return translateXofB.value;
-    else if (hasTranslateXofDChanged.value) return translateXofD.value;
-
-    return translateXofB.value;
-  });
-
-  const pointY1 = useDerivedValue(() => {
-    if (hasTranslateYofCChanged.value) return translateYofC.value;
-    else if (hasTranslateYofDChanged.value) return translateYofD.value;
-
-    return translateYofC.value;
-  });
-
-  const cropHeight = useDerivedValue(() => {
-    return pointY1.value - pointY0.value;
-  });
-
-  const cropWidth = useDerivedValue(() => {
-    return pointX1.value - pointX0.value;
-  });
+  const translateX = useSharedValue((limitationWidth - DEFAULT_WIDTH) / 2);
+  const translateY = useSharedValue((limitationHeight - DEFAULT_HEIGHT) / 2);
+  const windowHeight = useSharedValue(DEFAULT_HEIGHT);
+  const windowWidth = useSharedValue(DEFAULT_WIDTH);
 
   const setDimentionOnUI_JS = (
     width: number,
@@ -155,130 +58,122 @@ const ImageCropper: FC<Props> = ({
     offsetY: number,
   ): void => {
     setCropDimention({
-      width,
-      height,
       offsetX,
       offsetY,
+      width,
+      height,
     });
   };
 
-  const dotAGestureEvent = useAnimatedGestureHandler<
+  const gestureHandler = useAnimatedGestureHandler<
     PanGestureHandlerGestureEvent,
     {offsetX: number; offsetY: number}
   >({
     onStart: (_, ctx) => {
-      ctx.offsetX = translateXofA.value;
-      ctx.offsetY = translateYofA.value;
-      hasTranslateXofAChanged.value = !hasTranslateXofAChanged.value;
-      hasTranslateYofAChanged.value = !hasTranslateYofAChanged.value;
+      ctx.offsetX = translateX.value;
+      ctx.offsetY = translateY.value;
     },
     onActive: (event, ctx) => {
-      translateXofA.value = clamp(
+      translateX.value = clamp(
         ctx.offsetX + event.translationX,
         0,
-        containerWidth - cropWidth.value,
+        limitationWidth - windowWidth.value,
       );
 
-      translateYofA.value = clamp(
+      translateY.value = clamp(
         ctx.offsetY + event.translationY,
         0,
-        containerHeight - cropHeight.value,
+        limitationHeight - windowHeight.value,
       );
     },
-    onEnd: (_) => {
-      hasTranslateXofAChanged.value = !hasTranslateXofAChanged.value;
-      hasTranslateYofAChanged.value = !hasTranslateYofAChanged.value;
-
+    onEnd: () => {
       runOnJS(setDimentionOnUI_JS)(
-        cropWidth.value,
-        cropHeight.value,
-        translateXofA.value,
-        translateYofA.value,
+        windowWidth.value,
+        windowHeight.value,
+        translateX.value,
+        translateY.value,
       );
     },
   });
 
-  const dotDGestureEvent = useAnimatedGestureHandler<
+  const resizeHandler = useAnimatedGestureHandler<
     PanGestureHandlerGestureEvent,
-    {offsetX: number; offsetY: number}
+    {
+      windowHeight: number;
+      windowWidth: number;
+      offsetX: number;
+      offsetY: number;
+    }
   >({
     onStart: (_, ctx) => {
-      ctx.offsetX = translateXofD.value;
-      ctx.offsetY = translateYofD.value;
+      ctx.windowWidth = windowWidth.value;
+      ctx.windowHeight = windowHeight.value;
+      ctx.offsetX = translateX.value;
+      ctx.offsetY = translateY.value;
     },
     onActive: (event, ctx) => {
-      translateXofD.value = clamp(
-        ctx.offsetX + event.translationX,
-        0,
-        containerWidth - cropWidth.value,
+      windowWidth.value = clamp(
+        ctx.windowWidth + event.translationX,
+        minWidth,
+        limitationWidth - translateX.value,
       );
 
-      translateYofD.value = clamp(
-        ctx.offsetX + event.translationX,
-        0,
-        containerWidth - cropWidth.value,
+      windowHeight.value = clamp(
+        ctx.windowHeight + event.translationY,
+        minHeight,
+        limitationHeight - translateY.value,
+      );
+    },
+    onEnd: () => {
+      runOnJS(setDimentionOnUI_JS)(
+        windowWidth.value,
+        windowHeight.value,
+        translateX.value,
+        translateY.value,
       );
     },
   });
 
-  const cropWindowAnim = useAnimatedStyle(() => {
-    return {
-      width: cropWidth.value,
-      height: cropHeight.value,
-      transform: [
-        {translateX: translateXofA.value},
-        {translateY: translateYofA.value},
-      ],
-    };
-  });
-
-  const dotAAnim = useAnimatedStyle(() => {
-    return {
-      transform: [{translateX: pointX0.value}, {translateY: pointY0.value}],
-    };
-  });
-
-  const dotBAnim = useAnimatedStyle(() => {
-    return {
-      transform: [{translateX: pointX1.value}, {translateY: pointY0.value}],
-    };
-  });
-
-  const dotCAnim = useAnimatedStyle(() => {
-    return {
-      transform: [{translateX: pointX0.value}, {translateY: pointY1.value}],
-    };
-  });
-
-  const dotDAnim = useAnimatedStyle(() => {
-    return {
-      transform: [{translateX: pointX1.value}, {translateY: pointY1.value}],
-    };
-  });
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [
+      {
+        translateX: translateX.value,
+      },
+      {
+        translateY: translateY.value,
+      },
+    ],
+    height: windowHeight.value,
+    width: windowWidth.value,
+  }));
 
   return (
-    <Container width={containerWidth} height={containerHeight}>
-      <Animated.View style={dotAAnim}>
-        <DotA />
-      </Animated.View>
-      <Animated.View style={dotBAnim}>
-        <DotB />
-      </Animated.View>
-      <Animated.View style={dotCAnim}>
-        <DotC />
-      </Animated.View>
-      <PanGestureHandler onGestureEvent={dotDGestureEvent}>
-        <Animated.View style={dotDAnim}>
-          <DotD />
-        </Animated.View>
-      </PanGestureHandler>
-      <PanGestureHandler onGestureEvent={dotAGestureEvent}>
-        <Animated.View style={cropWindowAnim}>
-          <CropWindow />
+    <Container width={limitationWidth} height={limitationHeight}>
+      <PanGestureHandler onGestureEvent={gestureHandler}>
+        <Animated.View
+          style={[
+            animatedStyle,
+            {
+              borderWidth: 2,
+              borderColor: 'white',
+              backgroundColor: 'transparent',
+            },
+          ]}>
+          <PanGestureHandler onGestureEvent={resizeHandler}>
+            <Animated.View
+              style={{
+                position: 'absolute',
+                zIndex: 1,
+                right: -15,
+                bottom: -15,
+              }}>
+              <Dot />
+            </Animated.View>
+          </PanGestureHandler>
         </Animated.View>
       </PanGestureHandler>
     </Container>
   );
 };
 
-export default ImageCropper;
+export default Refleca;
